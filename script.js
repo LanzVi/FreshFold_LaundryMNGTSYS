@@ -2,9 +2,9 @@
 
 // ── NAVIGATION SITE MAP SCHEMA ─────────────────────────────────────────
 const ROUTE_MANIFEST = [
-  { viewId: 'view-customer-dashboard', label: '✨ Booking Panel', roles: ['customer'] },
-  { viewId: 'view-operations', label: '🔧 Active Operations Queue', roles: ['staff', 'admin'] },
-  { viewId: 'view-system-management', label: '👑 Core System Admin', roles: ['admin'] }
+  { viewId: 'view-customer-dashboard', label: 'Book Appointment', roles: ['customer'] },
+  { viewId: 'view-operations', label: 'Orders', roles: ['staff', 'admin'] },
+  { viewId: 'view-system-management', label: 'Users', roles: ['admin'] }
 ];
 
 const STAFF_ACCESS_SECRET = 'FRESHFOLD2025';
@@ -21,13 +21,14 @@ function setStore(key, data) {
 
 // Seed Initial Local Core Setup Values if empty
 let dbUsers = getStore('ff_users', [
-  { id: 101, name: 'System Root Admin', email: 'admin@freshfold.com', pass: 'admin123', role: 'admin' },
-  { id: 102, name: 'Operational Clerk A', email: 'staff@freshfold.com', pass: 'staff123', role: 'staff' },
-  { id: 103, name: 'Regular Client Account', email: 'customer@freshfold.com', pass: 'customer123', role: 'customer' }
+  { id: 101, name: 'Owner', email: 'admin@freshfold.com', pass: 'admin123', role: 'admin' },
+  { id: 102, name: 'Employee', email: 'staff@freshfold.com', pass: 'staff123', role: 'staff' },
+  { id: 103, name: 'Customer', email: 'customer@freshfold.com', pass: 'customer123', role: 'customer' }
 ]);
 let dbAppointments = getStore('ff_appointments', [
-  { id: 1, txn: 'TXN-8821', userId: 103, name: 'Regular Client Account', svc: 'Wash & Fold', weight: 6, amount: 390, status: 'Pending' },
-  { id: 2, txn: 'TXN-4119', userId: 103, name: 'Regular Client Account', svc: 'Dry Cleaning', weight: 2, amount: 360, status: 'Processing' }
+  { id: 1, txn: 'TXN-8821', userId: 103, name: 'Customer', svc: 'Wash & Fold', weight: 6, amount: 390, status: 'Pending' },
+  { id: 1, txn: 'TXN-8821', userId: 103, name: 'Customer', svc: 'Wash & Fold', weight: 6, amount: 390, status: 'Pending' },
+  { id: 2, txn: 'TXN-4119', userId: 103, name: 'Customer', svc: 'Dry Cleaning', weight: 2, amount: 360, status: 'Processing' }
 ]);
 setStore('ff_users', dbUsers);
 setStore('ff_appointments', dbAppointments);

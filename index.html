@@ -24,7 +24,7 @@
       </div>
 
       <div class="auth-form" id="login-form">
-        <h2>Welcome back</h2>
+        <h2>Welcome back!</h2>
         <p class="sub">Sign in to manage your laundry profile</p>
         <div class="field"><label>Email Address</label><input type="email" id="l-email" placeholder="name@domain.com"></div>
         <div class="field"><label>Password</label><input type="password" id="l-pass" placeholder="••••••••"></div>
@@ -34,7 +34,7 @@
       <div class="auth-form" id="register-form" style="display:none">
         <h2>Create Account</h2>
         <p class="sub">Join FreshFold laundry services today</p>
-        <div class="field"><label>Full Name</label><input type="text" id="r-name" placeholder="John Doe"></div>
+        <div class="field"><label>Full Name</label><input type="text" id="r-name" placeholder="Name"></div>
         <div class="field"><label>Email Address</label><input type="email" id="r-email" placeholder="name@domain.com"></div>
         <div class="field"><label>Phone Number</label><input type="tel" id="r-phone" placeholder="09XXXXXXXXX"></div>
         <div class="field"><label>Password</label><input type="password" id="r-pass" placeholder="Create password"></div>
@@ -66,7 +66,7 @@
         <div class="sb-name" id="user-display-name">---</div>
         <div class="sb-email" id="user-display-email">---</div>
         <span class="sb-badge" id="user-display-role">---</span>
-        <button class="logout-btn" onclick="handleLogout()">Exit Session</button>
+        <button class="logout-btn" onclick="handleLogout()">Logout</button>
       </div>
     </aside>
 
@@ -75,11 +75,11 @@
       <section id="view-customer-dashboard" class="page" data-roles="customer">
         <div class="page-title">
           <h1 id="customer-welcome-heading">Welcome to FreshFold</h1>
-          <p>Book premium automated cleaning setups and watch drop-off timelines live.</p>
+          <p>Book a new laundry appointment anytime.</p>
         </div>
         
         <div class="metrics">
-          <div class="metric m-teal"><h5>My Open Bookings</h5><h2 id="m-cust-count">0</h2></div>
+          <div class="metric m-teal"><h5>My Appointments</h5><h2 id="m-cust-count">0</h2></div>
         </div>
 
         <div class="grid-two">
@@ -87,20 +87,22 @@
             <div class="card-hd"><h3>Book New Drop-off Appointment</h3></div>
             <div class="card-body">
               <div class="field">
-                <label>Service Selection Matrix</label>
+                <label>What type of service do you need?</label>
                 <select id="appt-service">
                   <option value="Wash & Fold">Wash & Fold — ₱65/kg</option>
                   <option value="Dry Cleaning">Dry Cleaning — ₱180/kg</option>
                   <option value="Ironing & Press">Ironing & Press — ₱40/kg</option>
+                  <option value="Bedsheet & Linens">Bedsheet & Linens — ₱120/kg</option>
+                  <option value="Express Service">Express Service — ₱97.50/kg</option>
                 </select>
               </div>
               <div class="field"><label>Weight Estimate (kg)</label><input type="number" id="appt-weight" value="5" min="1"></div>
-              <button class="btn btn-primary" onclick="submitBooking()">Deploy Appointment Order</button>
+              <button class="btn btn-primary" onclick="submitBooking()">Submit Appointment</button>
             </div>
           </div>
 
           <div class="card">
-            <div class="card-hd"><h3>Active Order History Log</h3></div>
+            <div class="card-hd"><h3>Appointment History</h3></div>
             <div class="card-body" style="padding:0;">
               <table>
                 <thead><tr><th>Ref</th><th>Service</th><th>Status</th></tr></thead>
@@ -113,15 +115,15 @@
 
       <section id="view-operations" class="page" data-roles="staff,admin">
         <div class="page-title">
-          <h1>Operations Center Queue</h1>
+          <h1>Dashboard</h1>
           <p>Track laundry pipelines and progress client transactions across lifecycle checkpoints.</p>
         </div>
         <div class="card">
-          <div class="card-hd"><h3>Active Work Orders</h3></div>
+          <div class="card-hd"><h3>Orders</h3></div>
           <div class="card-body" style="padding:0;">
             <table>
               <thead>
-                <tr><th>Txn Ref</th><th>Client Profile</th><th>Service Parameters</th><th>Status Target</th><th>Execution Operations</th></tr>
+                <tr><th>Txn Ref</th><th>User</th><th>Service Type</th><th>Status</th><th>Action</th></tr>
               </thead>
               <tbody id="operations-table-body"></tbody>
             </table>
@@ -131,14 +133,14 @@
 
       <section id="view-system-management" class="page" data-roles="admin">
         <div class="page-title">
-          <h1>System Administration Dashboard</h1>
+          <h1>Dashboard</h1>
           <p>Adjust system configurations and override account system roles parameters.</p>
         </div>
         <div class="card">
-          <div class="card-hd"><h3>Registered Users Access Database Ledger</h3></div>
+          <div class="card-hd"><h3>Registered Users</h3></div>
           <div class="card-body" style="padding:0;">
             <table>
-              <thead><tr><th>ID Code</th><th>User Name</th><th>Email Identity</th><th>Assigned Authorization Role</th><th>Action Update</th></tr></thead>
+              <thead><tr><th>ID Code</th><th>User Name</th><th>Email</th><th>User Role</th><th>Action</th></tr></thead>
               <tbody id="management-table-body"></tbody>
             </table>
           </div>
