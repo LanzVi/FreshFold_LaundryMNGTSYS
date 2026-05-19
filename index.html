@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FreshFold — Laundry System</title>
-  <link rel="stylesheet" href="/style.css">
+  <title>FreshFold — Pure Frontend Laundry System</title>
+  <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Fraunces:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
@@ -25,31 +25,31 @@
 
       <div class="auth-form" id="login-form">
         <h2>Welcome back</h2>
-        <p class="sub">Sign in to your account</p>
-        <div class="field"><label>Email</label><input type="email" id="l-email" placeholder="you@email.com"></div>
-        <div class="field"><label>Password</label><input type="password" id="l-pass" placeholder="Your password"></div>
-        <button class="btn btn-primary" onclick="handleLogin()">Sign in →</button>
+        <p class="sub">Sign in to manage your laundry profile</p>
+        <div class="field"><label>Email Address</label><input type="email" id="l-email" placeholder="name@domain.com"></div>
+        <div class="field"><label>Password</label><input type="password" id="l-pass" placeholder="••••••••"></div>
+        <button class="btn btn-primary" onclick="handleLogin()">Sign In →</button>
       </div>
 
       <div class="auth-form" id="register-form" style="display:none">
-        <h2>Create account</h2>
-        <p class="sub">Join FreshFold today</p>
-        <div class="field"><label>Full Name</label><input type="text" id="r-name" placeholder="Your full name"></div>
-        <div class="field"><label>Email</label><input type="email" id="r-email" placeholder="you@email.com"></div>
-        <div class="field"><label>Phone</label><input type="tel" id="r-phone" placeholder="09XXXXXXXXX"></div>
-        <div class="field"><label>Password</label><input type="password" id="r-pass" placeholder="Create a password"></div>
+        <h2>Create Account</h2>
+        <p class="sub">Join FreshFold laundry services today</p>
+        <div class="field"><label>Full Name</label><input type="text" id="r-name" placeholder="John Doe"></div>
+        <div class="field"><label>Email Address</label><input type="email" id="r-email" placeholder="name@domain.com"></div>
+        <div class="field"><label>Phone Number</label><input type="tel" id="r-phone" placeholder="09XXXXXXXXX"></div>
+        <div class="field"><label>Password</label><input type="password" id="r-pass" placeholder="Create password"></div>
         <div class="field">
-          <label>Register As</label>
+          <label>Account Assignment Profile</label>
           <div class="role-row">
             <div class="role-chip active" id="chip-customer" onclick="selectRegisterRole('customer')">🧑 Customer</div>
             <div class="role-chip" id="chip-staff" onclick="selectRegisterRole('staff')">🔧 Staff</div>
           </div>
         </div>
         <div class="field" id="staff-code-field" style="display:none">
-          <label>Staff Access Code</label>
-          <input type="password" id="r-staff-code" placeholder="Enter registration secret">
+          <label>Staff Infrastructure Activation Secret</label>
+          <input type="password" id="r-staff-code" placeholder="Enter security access key">
         </div>
-        <button class="btn btn-primary" onclick="handleRegister()">Register Account</button>
+        <button class="btn btn-primary" onclick="handleRegister()">Register Framework Account</button>
       </div>
     </div>
   </div>
@@ -66,7 +66,7 @@
         <div class="sb-name" id="user-display-name">---</div>
         <div class="sb-email" id="user-display-email">---</div>
         <span class="sb-badge" id="user-display-role">---</span>
-        <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        <button class="logout-btn" onclick="handleLogout()">Exit Session</button>
       </div>
     </aside>
 
@@ -75,38 +75,55 @@
       <section id="view-customer-dashboard" class="page" data-roles="customer">
         <div class="page-title">
           <h1 id="customer-welcome-heading">Welcome to FreshFold</h1>
-          <p>Book your next premium laundry drop-off instantly.</p>
+          <p>Book premium automated cleaning setups and watch drop-off timelines live.</p>
         </div>
-        <div class="card">
-          <div class="card-hd"><h3>Book New Drop-off Appointment</h3></div>
-          <div class="card-body">
-            <div class="field">
-              <label>Service Type</label>
-              <select id="appt-service">
-                <option value="Wash & Fold">Wash & Fold — ₱65/kg</option>
-                <option value="Dry Cleaning">Dry Cleaning — ₱180/kg</option>
-                <option value="Ironing & Press">Ironing & Press — ₱40/kg</option>
-              </select>
+        
+        <div class="metrics">
+          <div class="metric m-teal"><h5>My Open Bookings</h5><h2 id="m-cust-count">0</h2></div>
+        </div>
+
+        <div class="grid-two">
+          <div class="card">
+            <div class="card-hd"><h3>Book New Drop-off Appointment</h3></div>
+            <div class="card-body">
+              <div class="field">
+                <label>Service Selection Matrix</label>
+                <select id="appt-service">
+                  <option value="Wash & Fold">Wash & Fold — ₱65/kg</option>
+                  <option value="Dry Cleaning">Dry Cleaning — ₱180/kg</option>
+                  <option value="Ironing & Press">Ironing & Press — ₱40/kg</option>
+                </select>
+              </div>
+              <div class="field"><label>Weight Estimate (kg)</label><input type="number" id="appt-weight" value="5" min="1"></div>
+              <button class="btn btn-primary" onclick="submitBooking()">Deploy Appointment Order</button>
             </div>
-            <button class="btn btn-primary" onclick="submitBooking()">Request Booking</button>
+          </div>
+
+          <div class="card">
+            <div class="card-hd"><h3>Active Order History Log</h3></div>
+            <div class="card-body" style="padding:0;">
+              <table>
+                <thead><tr><th>Ref</th><th>Service</th><th>Status</th></tr></thead>
+                <tbody id="cust-orders-tbody"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
 
       <section id="view-operations" class="page" data-roles="staff,admin">
         <div class="page-title">
-          <h1>Operations Center</h1>
-          <p>Track customer orders and transition queue state cycles.</p>
+          <h1>Operations Center Queue</h1>
+          <p>Track laundry pipelines and progress client transactions across lifecycle checkpoints.</p>
         </div>
         <div class="card">
-          <div class="card-hd"><h3>Active Orders Queue</h3></div>
-          <div class="card-body">
+          <div class="card-hd"><h3>Active Work Orders</h3></div>
+          <div class="card-body" style="padding:0;">
             <table>
               <thead>
-                <tr><th>Txn Ref</th><th>Customer</th><th>Service</th><th>Status</th><th>Actions</th></tr>
+                <tr><th>Txn Ref</th><th>Client Profile</th><th>Service Parameters</th><th>Status Target</th><th>Execution Operations</th></tr>
               </thead>
-              <tbody id="operations-table-body">
-                </tbody>
+              <tbody id="operations-table-body"></tbody>
             </table>
           </div>
         </div>
@@ -114,14 +131,14 @@
 
       <section id="view-system-management" class="page" data-roles="admin">
         <div class="page-title">
-          <h1>System Control Architecture</h1>
-          <p>System-wide account role management panel.</p>
+          <h1>System Administration Dashboard</h1>
+          <p>Adjust system configurations and override account system roles parameters.</p>
         </div>
         <div class="card">
-          <div class="card-hd"><h3>User Roles Ledger</h3></div>
-          <div class="card-body">
+          <div class="card-hd"><h3>Registered Users Access Database Ledger</h3></div>
+          <div class="card-body" style="padding:0;">
             <table>
-              <thead><tr><th>User ID</th><th>Name</th><th>Email</th><th>Assigned Role</th></tr></thead>
+              <thead><tr><th>ID Code</th><th>User Name</th><th>Email Identity</th><th>Assigned Authorization Role</th><th>Action Update</th></tr></thead>
               <tbody id="management-table-body"></tbody>
             </table>
           </div>
@@ -133,6 +150,6 @@
 
   <div id="toast-wrapper" class="toast"></div>
 
-  <script src="/script.js"></script>
 </body>
+<script src="script.js"></script>
 </html>

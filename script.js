@@ -1,55 +1,73 @@
-/* app.js */
+/* app.js — Central Frontend Database & Routing State Engine */
 
-// ── INITIAL SYSTEM STATE MOCK ──────────────────────────────────────────
-const SYSTEM_ROUTER_LINKS = [
-  { viewId: 'view-customer-dashboard', label: '✨ Customer Booking', roles: ['customer'] },
-  { viewId: 'view-operations', label: '🔧 Laundry Queue Operations', roles: ['staff', 'admin'] },
+// ── NAVIGATION SITE MAP SCHEMA ─────────────────────────────────────────
+const ROUTE_MANIFEST = [
+  { viewId: 'view-customer-dashboard', label: '✨ Booking Panel', roles: ['customer'] },
+  { viewId: 'view-operations', label: '🔧 Active Operations Queue', roles: ['staff', 'admin'] },
   { viewId: 'view-system-management', label: '👑 Core System Admin', roles: ['admin'] }
 ];
 
-let globalActiveUser = JSON.parse(localStorage.getItem('ff_session')) || null;
-let activeRegisterRole = 'customer';
+const STAFF_ACCESS_SECRET = 'FRESHFOLD2025';
 
-// Mock DB Cache values to maintain isolated local testing runtime
-let localOrders = JSON.parse(localStorage.getItem('ff_orders')) || [
-  { txn: 'TXN-1001', name: 'Juan Dela Cruz', svc: 'Wash & Fold', status: 'Pending' },
-  { txn: 'TXN-1002', name: 'Ana Reyes', svc: 'Dry Cleaning', status: 'Processing' }
-];
-
-// ── CORE SINGLE PAGE APPLICATION ROUTING ENGINE ────────────────────────
-function navigateToView(targetViewId) {
-  if (!globalActiveUser) {
-    showAuthLayout();
-    return;
-  }
-
-  const targetedViewElement = document.getElementById(targetViewId);
-  if (!targetedViewElement) return;
-
-  // Assert view permission validation parameters
-  const targetAllowedRoles = targetedViewElement.getAttribute('data-roles').split(',');
-  if (!targetAllowedRoles.includes(globalActiveUser.role)) {
-    triggerToast('Access Denied: Missing authorization clearances.', 'err');
-    // Default fallback routing redirect based on role assignment
-    const defaultRoute = globalActiveUser.role === 'customer' ? 'view-customer-dashboard' : 'view-operations';
-    navigateToView(defaultRoute);
-    return;
-  }
-
-  // Deactivate all matching page sections across the document flow
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('active'));
-
-  // Toggle active styling triggers
-  targetedViewElement.classList.add('active');
-  const contextNavLink = document.getElementById(`nav-link-${targetViewId}`);
-  if (contextNavLink) contextNavLink.classList.add('active');
-
-  // Trigger contextual presentation view hooks
-  executeViewRenderLifecycle(targetViewId);
+// ── CLIENT-SIDE LOCAL STORAGE VIRTUAL ENGINE DATA STORAGE ──────────────────
+function getStore(key, defaultData) {
+  const data = localStorage.getItem(key);
+  return data ? JSON.parse(data) : defaultData;
 }
 
-function showAuthLayout() {
+function setStore(key, data) {
+  localStorage.setItem(key, JSON.stringify(data));
+}
+
+// Seed Initial Local Core Setup Values if empty
+let dbUsers = getStore('ff_users', [
+  { id: 101, name: 'System Root Admin', email: 'admin@freshfold.com', pass: 'admin123', role: 'admin' },
+  { id: 102, name: 'Operational Clerk A', email: 'staff@freshfold.com', pass: 'staff123', role: 'staff' },
+  { id: 103, name: 'Regular Client Account', email: 'customer@freshfold.com', pass: 'customer123', role: 'customer' }
+]);
+let dbAppointments = getStore('ff_appointments', [
+  { id: 1, txn: 'TXN-8821', userId: 103, name: 'Regular Client Account', svc: 'Wash & Fold', weight: 6, amount: 390, status: 'Pending' },
+  { id: 2, txn: 'TXN-4119', userId: 103, name: 'Regular Client Account', svc: 'Dry Cleaning', weight: 2, amount: 360, status: 'Processing' }
+]);
+setStore('ff_users', dbUsers);
+setStore('ff_appointments', dbAppointments);
+
+let activeSessionUser = JSON.parse(localStorage.getItem('ff_active_session')) || null;
+let currentSelectedRegisterRole = 'customer';
+
+// ── VIEW ROUTER MUTATION CONTROLLER ──────────────────────────────────────
+function navigateToView(targetViewId) {
+  if (!activeSessionUser) {
+    showAuthenticationLayout();
+    return;
+  }
+
+  const targetedPageSection = document.getElementById(targetViewId);
+  if (!targetedPageSection) return;
+
+  // Evaluate permission clearances directly against active view configurations
+  const structuralAllowedRoles = targetedPageSection.getAttribute('data-roles').split(',');
+  if (!structuralAllowedRoles.includes(activeSessionUser.role)) {
+    triggerToast('Authorization Error: Access Clearances Missing.', 'err');
+    const defaultRoleFallbackView = activeSessionUser.role === 'customer' ? 'view-customer-dashboard' : 'view-operations';
+    navigateToView(defaultRoleFallbackView);
+    return;
+  }
+
+  // Clear tracking display visual selection classes
+  document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+  document.querySelectorAll('.sb-link').forEach(link => link.classList.remove('active'));
+
+  // Trigger active layouts
+  targetedPageSection.classList.add('active');
+  const activeSidebarLink = document.getElementById(`nav-link-${targetViewId}`);
+  if (activeSidebarLink) activeSidebarLink.classList.add('active');
+
+  // Trigger internal dynamic data mutations render processes
+  executeTargetViewLifecycleRender(targetViewId);
+}
+
+function showAuthenticationLayout() {
   document.getElementById('app-screen').classList.remove('active');
   document.getElementById('auth-screen').classList.add('active');
 }
@@ -57,60 +75,102 @@ function showAuthLayout() {
 function showMainApplicationLayout() {
   document.getElementById('auth-screen').classList.remove('active');
   document.getElementById('app-screen').classList.add('active');
-  
-  // Render user metadata panel elements
-  document.getElementById('user-display-name').textContent = globalActiveUser.name;
-  document.getElementById('user-display-email').textContent = globalActiveUser.email;
-  
-  const roleBadge = document.getElementById('user-display-role');
-  roleBadge.textContent = globalActiveUser.role.toUpperCase();
-  roleBadge.className = `sb-badge badge-${globalActiveUser.role}`;
 
-  renderNavigationSidebar();
+  // Load identity view elements
+  document.getElementById('user-display-name').textContent = activeSessionUser.name;
+  document.getElementById('user-display-email').textContent = activeSessionUser.email;
   
-  // Route initial user access path securely
-  const primaryInitialView = globalActiveUser.role === 'customer' ? 'view-customer-dashboard' : 'view-operations';
-  navigateToView(primaryInitialView);
+  const labelBadge = document.getElementById('user-display-role');
+  labelBadge.textContent = activeSessionUser.role;
+  labelBadge.className = `sb-badge badge-${activeSessionUser.role}`;
+
+  renderDynamicNavigationSidebar();
+
+  const landingTargetRoute = activeSessionUser.role === 'customer' ? 'view-customer-dashboard' : 'view-operations';
+  navigateToView(landingTargetRoute);
 }
 
-// ── RENDER ENGINE MUTATIONS ────────────────────────────────────────────
-function renderNavigationSidebar() {
+function renderDynamicNavigationSidebar() {
   const navContainer = document.getElementById('sidebar-navigation');
   navContainer.innerHTML = '';
 
-  SYSTEM_ROUTER_LINKS.forEach(linkItem => {
-    if (linkItem.roles.includes(globalActiveUser.role)) {
-      const btn = document.createElement('button');
-      btn.className = 'sb-link';
-      btn.id = `nav-link-${linkItem.viewId}`;
-      btn.textContent = linkItem.label;
-      btn.onclick = () => navigateToView(linkItem.viewId);
-      navContainer.appendChild(btn);
+  ROUTE_MANIFEST.forEach(route => {
+    if (route.roles.includes(activeSessionUser.role)) {
+      const navBtn = document.createElement('button');
+      navBtn.className = 'sb-link';
+      navBtn.id = `nav-link-${route.viewId}`;
+      navBtn.textContent = route.label;
+      navBtn.onclick = () => navigateToView(route.viewId);
+      navContainer.appendChild(navBtn);
     }
   });
 }
 
-function executeViewRenderLifecycle(viewId) {
+// ── RENDER COMPONENT CONTROLLERS ──────────────────────────────────────────
+function executeTargetViewLifecycleRender(viewId) {
+  const localApptsList = getStore('ff_appointments', []);
+  const localUsersList = getStore('ff_users', []);
+
+  if (viewId === 'view-customer-dashboard') {
+    const userFilteredAppts = localApptsList.filter(a => a.userId === activeSessionUser.id);
+    document.getElementById('m-cust-count').textContent = userFilteredAppts.length;
+    document.getElementById('customer-welcome-heading').textContent = `Welcome back, ${activeSessionUser.name}`;
+
+    const custTableBody = document.getElementById('cust-orders-tbody');
+    custTableBody.innerHTML = userFilteredAppts.length ? '' : '<tr><td colspan="3" style="text-align:center; color:var(--muted);">No current orders booked.</td></tr>';
+    
+    userFilteredAppts.forEach(order => {
+      const row = document.createElement('tr');
+      row.innerHTML = `<td><b>${order.txn}</b></td><td>${order.svc} (${order.weight}kg)</td><td><span class="sb-badge badge-customer">${order.status}</span></td>`;
+      custTableBody.appendChild(row);
+    });
+  }
+
   if (viewId === 'view-operations') {
-    const tbody = document.getElementById('operations-table-body');
-    tbody.innerHTML = '';
-    localOrders.forEach((order, idx) => {
+    const operationsTableBody = document.getElementById('operations-table-body');
+    operationsTableBody.innerHTML = localApptsList.length ? '' : '<tr><td colspan="5" style="text-align:center; color:var(--muted);">Operations tracking pipeline empty.</td></tr>';
+    
+    localApptsList.forEach(order => {
       const row = document.createElement('tr');
       row.innerHTML = `
         <td><b>${order.txn}</b></td>
         <td>${order.name}</td>
-        <td>${order.svc}</td>
-        <td><span class="badge b-pending">${order.status}</span></td>
+        <td>${order.svc} — <b>${order.weight} kg</b></td>
+        <td><span class="sb-badge badge-staff">${order.status}</span></td>
         <td>
-          <button class="sm-btn sm-blue" onclick="progressOrderState(${idx})">Progress Step</button>
+          <button class="sm-btn" onclick="cycleOrderStatusStep('${order.txn}')">Advance Step</button>
         </td>
       `;
-      tbody.appendChild(row);
+      operationsTableBody.appendChild(row);
+    });
+  }
+
+  if (viewId === 'view-system-management') {
+    const managementTableBody = document.getElementById('management-table-body');
+    managementTableBody.innerHTML = '';
+    
+    localUsersList.forEach(user => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>#${user.id}</td>
+        <td><b>${user.name}</b></td>
+        <td>${user.email}</td>
+        <td><span class="sb-badge badge-${user.role}">${user.role}</span></td>
+        <td>
+          <select style="padding: 4px; font-size:12px; width:auto;" onchange="updateUserAuthorizationRole(${user.id}, this.value)">
+            <option value="">-- Shift Role --</option>
+            <option value="customer">Customer</option>
+            <option value="staff">Staff</option>
+            <option value="admin">Admin</option>
+          </select>
+        </td>
+      `;
+      managementTableBody.appendChild(row);
     });
   }
 }
 
-// ── CONTROLLER ACTIONS & STATE HANDLERS ────────────────────────────────
+// ── LOGIC OPERATIONS & CONTROLLERS ACTION ACTIONS ───────────────────────────
 function switchAuthTab(tab) {
   document.getElementById('tab-login').classList.toggle('active', tab === 'login');
   document.getElementById('tab-register').classList.toggle('active', tab === 'register');
@@ -119,88 +179,149 @@ function switchAuthTab(tab) {
 }
 
 function selectRegisterRole(role) {
-  activeRegisterRole = role;
+  currentSelectedRegisterRole = role;
   document.getElementById('chip-customer').classList.toggle('active', role === 'customer');
   document.getElementById('chip-staff').classList.toggle('active', role === 'staff');
   document.getElementById('staff-code-field').style.display = role === 'staff' ? 'block' : 'none';
 }
 
 function handleLogin() {
-  const email = document.getElementById('l-email').value.trim();
-  const pass = document.getElementById('l-pass').value;
+  const emailInput = document.getElementById('l-email').value.trim();
+  const passInput = document.getElementById('l-pass').value;
+  const currentUsers = getStore('ff_users', []);
 
-  if (!email || !pass) {
-    triggerToast('Please provide valid verification tokens.', 'err');
+  const verifiedUser = currentUsers.find(u => u.email.toLowerCase() === emailInput.toLowerCase() && u.pass === passInput);
+
+  if (!verifiedUser) {
+    triggerToast('Authentication failed: Invalid credentials configuration matching.', 'err');
     return;
   }
 
-  // Handle core system testing configurations
-  if (email.includes('owner') || email.includes('admin')) {
-    globalActiveUser = { name: 'Admin Master', email: email, role: 'admin' };
-  } else if (email.includes('staff')) {
-    globalActiveUser = { name: 'Operator Agent', email: email, role: 'staff' };
-  } else {
-    globalActiveUser = { name: 'Valued Client', email: email, role: 'customer' };
-  }
-
-  localStorage.setItem('ff_session', JSON.stringify(globalActiveUser));
-  triggerToast('Authentication profile mapped successfully.', 'ok');
+  activeSessionUser = verifiedUser;
+  localStorage.setItem('ff_active_session', JSON.stringify(activeSessionUser));
+  triggerToast(`Welcome back, ${activeSessionUser.name}.`);
   showMainApplicationLayout();
 }
 
 function handleRegister() {
-  const name = document.getElementById('r-name').value.trim();
+  const fullName = document.getElementById('r-name').value.trim();
   const email = document.getElementById('r-email').value.trim();
-  
-  if (activeRegisterRole === 'staff' && document.getElementById('r-staff-code').value !== 'FRESHFOLD2025') {
-    triggerToast('Invalid deployment infrastructure secret access key.', 'err');
+  const phone = document.getElementById('r-phone').value.trim();
+  const pass = document.getElementById('r-pass').value;
+  const currentUsers = getStore('ff_users', []);
+
+  if (!fullName || !email || !pass) {
+    triggerToast('Validation Error: Form text targets incomplete.', 'err');
     return;
   }
 
-  globalActiveUser = { name: name || 'New User Account', email: email, role: activeRegisterRole };
-  localStorage.setItem('ff_session', JSON.stringify(globalActiveUser));
+  if (currentUsers.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+    triggerToast('Data Matrix Conflict: Email address already mapped.', 'err');
+    return;
+  }
+
+  if (currentSelectedRegisterRole === 'staff') {
+    const inputCode = document.getElementById('r-staff-code').value;
+    if (inputCode !== STAFF_ACCESS_SECRET) {
+      triggerToast('Security Validation Rejection: Invalid infrastructure access code.', 'err');
+      return;
+    }
+  }
+
+  const newUserObject = {
+    id: Date.now(),
+    name: fullName,
+    email: email,
+    phone: phone,
+    pass: pass,
+    role: currentSelectedRegisterRole
+  };
+
+  currentUsers.push(newUserObject);
+  setStore('ff_users', currentUsers);
+
+  activeSessionUser = newUserObject;
+  localStorage.setItem('ff_active_session', JSON.stringify(activeSessionUser));
+  triggerToast('Registration execution finalized.');
   showMainApplicationLayout();
 }
 
 function handleLogout() {
-  localStorage.removeItem('ff_session');
-  globalActiveUser = null;
-  showAuthLayout();
+  localStorage.removeItem('ff_active_session');
+  activeSessionUser = null;
+  triggerToast('Identity session context terminated.');
+  showAuthenticationLayout();
 }
 
 function submitBooking() {
-  const selectedService = document.getElementById('appt-service').value;
-  const newOrder = {
-    txn: 'TXN-' + Math.floor(1000 + Math.random() * 9000),
-    name: globalActiveUser.name,
-    svc: selectedService,
+  const selectedSvc = document.getElementById('appt-service').value;
+  const weightVal = parseFloat(document.getElementById('appt-weight').value) || 1;
+  const currentAppts = getStore('ff_appointments', []);
+
+  let ratePerKg = 65;
+  if (selectedSvc === 'Dry Cleaning') ratePerKg = 180;
+  if (selectedSvc === 'Ironing & Press') ratePerKg = 40;
+
+  const apptTxnRef = 'TXN-' + Math.floor(1000 + Math.random() * 9000);
+  const newAppointment = {
+    id: Date.now(),
+    txn: apptTxnRef,
+    userId: activeSessionUser.id,
+    name: activeSessionUser.name,
+    svc: selectedSvc,
+    weight: weightVal,
+    amount: weightVal * ratePerKg,
     status: 'Pending'
   };
+
+  currentAppts.unshift(newAppointment);
+  setStore('ff_appointments', currentAppts);
+  triggerToast(`Order requested: Reference key ${apptTxnRef}`);
+  executeTargetViewLifecycleRender('view-customer-dashboard');
+}
+
+function cycleOrderStatusStep(txnRef) {
+  const currentAppts = getStore('ff_appointments', []);
+  const targetIndex = currentAppts.findIndex(a => a.txn === txnRef);
   
-  localOrders.unshift(newOrder);
-  localStorage.setItem('ff_orders', JSON.stringify(localOrders));
-  triggerToast(`Booking registration generated: ${newOrder.txn}`, 'ok');
+  if (targetIndex !== -1) {
+    const operationalCurrentStatus = currentAppts[targetIndex].status;
+    let nextStatus = 'Processing';
+    if (operationalCurrentStatus === 'Processing') nextStatus = 'Ready';
+    if (operationalCurrentStatus === 'Ready') nextStatus = 'Picked Up';
+    
+    currentAppts[targetIndex].status = nextStatus;
+    setStore('ff_appointments', currentAppts);
+    triggerToast(`Order status updated to: ${nextStatus}`);
+    executeTargetViewLifecycleRender('view-operations');
+  }
 }
 
-function progressOrderState(index) {
-  localOrders[index].status = 'Processing';
-  localStorage.setItem('ff_orders', JSON.stringify(localOrders));
-  triggerToast('Internal operations state machine incremented.', 'ok');
-  executeViewRenderLifecycle('view-operations');
+function updateUserAuthorizationRole(userId, newRole) {
+  if (!newRole) return;
+  const currentUsers = getStore('ff_users', []);
+  const targetIndex = currentUsers.findIndex(u => u.id === userId);
+
+  if (targetIndex !== -1) {
+    currentUsers[targetIndex].role = newRole;
+    setStore('ff_users', currentUsers);
+    triggerToast('Account role authorization record state modified.');
+    executeTargetViewLifecycleRender('view-system-management');
+  }
 }
 
-function triggerToast(msg, variant = 'ok') {
-  const container = document.getElementById('toast-wrapper');
-  container.textContent = msg;
-  container.className = `toast show ${variant}`;
-  setTimeout(() => container.classList.remove('show'), 4000);
+function triggerToast(messageText, stateVariant = 'ok') {
+  const toastBox = document.getElementById('toast-wrapper');
+  toastBox.textContent = messageText;
+  toastBox.className = `toast show ${stateVariant}`;
+  setTimeout(() => toastBox.classList.remove('show'), 3500);
 }
 
-// ── INITIALIZATION ENTRY HOOK ──────────────────────────────────────────
+// ── INITIALIZATION CYCLE RUN SYSTEM BOOTSTRAP ─────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  if (globalActiveUser) {
+  if (activeSessionUser) {
     showMainApplicationLayout();
   } else {
-    showAuthLayout();
+    showAuthenticationLayout();
   }
 });
