@@ -1,4 +1,4 @@
-/* app.js — Central Frontend Database & Routing State Engine */
+const API_BASE_URL = 'http://127.0.0.1:5000/api';
 
 // ── NAVIGATION SITE MAP SCHEMA ─────────────────────────────────────────
 const ROUTE_MANIFEST = [
@@ -186,22 +186,48 @@ function selectRegisterRole(role) {
   document.getElementById('staff-code-field').style.display = role === 'staff' ? 'block' : 'none';
 }
 
-function handleLogin() {
-  const emailInput = document.getElementById('l-email').value.trim();
-  const passInput = document.getElementById('l-pass').value;
-  const currentUsers = getStore('ff_users', []);
+async function handleLogin() {
+  const email = document.getElementById('l-email').value.trim();
+  const password = document.getElementById('l-pass').value;
 
-  const verifiedUser = currentUsers.find(u => u.email.toLowerCase() === emailInput.toLowerCase() && u.pass === passInput);
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
 
-  if (!verifiedUser) {
-    triggerToast('Authentication failed: Invalid credentials configuration matching.', 'err');
-    return;
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error);
+
+    // Save the cryptographically verified JWT string token safely into local state session cache
+    localStorage.setItem('ff_jwt_token', data.token);
+    localStorage.setItem('ff_active_session', JSON.stringify(data.user));
+    
+    activeSessionUser = data.user;
+    triggerToast(`Welcome back, ${activeSessionUser.name}.`);
+    showMainApplicationLayout();
+
+  } catch (err) {
+    triggerToast(err.message, 'err');
   }
+}
 
-  activeSessionUser = verifiedUser;
-  localStorage.setItem('ff_active_session', JSON.stringify(activeSessionUser));
-  triggerToast(`Welcome back, ${activeSessionUser.name}.`);
-  showMainApplicationLayout();
+async function loadOperationsQueue() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/operations/queue`, {
+      method: 'GET',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('ff_jwt_token')}`
+      }
+    });
+    
+    const orders = await response.json();
+    // Render orders UI components recursively from here...
+  } catch (err) {
+    triggerToast('Could not fetch pipeline structural queue data metrics.', 'err');
+  }
 }
 
 function handleRegister() {
