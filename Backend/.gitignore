@@ -1,0 +1,8 @@
+# Ignore the local environment variables file (Crucial for security!)
+.env
+
+# Ignore the massive folder where npm packages are downloaded
+node_modules/
+
+# Ignore compiled JavaScript output files (since you only want to track your clean .ts files)
+dist/
