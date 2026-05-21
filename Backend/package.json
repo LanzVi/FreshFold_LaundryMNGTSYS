@@ -21,6 +21,8 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "cors": "^2.8.6"
+    "cors": "^2.8.6",
+    "mysql2": "^3.22.3",
+    "sequelize": "^6.37.8"
   }
 }

@@ -2,6 +2,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import serviceRouter from './services/service.router';
+import orderRouter from './orders/order.router';
 
 // 1. Load environment variables from the .env file immediately
 dotenv.config();
@@ -24,6 +26,8 @@ app.use(cors({
 }));
 
 // Body parsing middleware
+app.use('/api/services', serviceRouter);
+app.use('/api/orders', orderRouter);
 app.use(express.json());
 
 // Sample Test Route
